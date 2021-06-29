@@ -8,11 +8,10 @@ cd "$(
 )" || exit
 #====================================================
 #	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
-#	Author:	wulabing
+#	Author:	xx
 #	Dscription: V2ray ws+tls onekey Management
 #	Version: 1.0
-#	email:admin@wulabing.com
-#	Official document: www.v2ray.com
+#	#	Official document: www.v2ray.com
 #====================================================
 
 #fonts color
@@ -308,7 +307,7 @@ web_camouflage() {
     rm -rf /home/wwwroot
     mkdir -p /home/wwwroot
     cd /home/wwwroot || exit
-    git clone https://github.com/wulabing/3DCEList.git
+    git clone https://github.com/wikihacker/3DCEList.git
     judge "Web site camouflage"
 }
 v2ray_install() {
@@ -320,7 +319,7 @@ v2ray_install() {
     fi
     mkdir -p /root/v2ray
     cd /root/v2ray || exit
-    wget -N --no-check-certificate https://raw.githubusercontent.com/wulabing/V2Ray_ws-tls_bash_onekey/${github_branch}/v2ray.sh
+    wget -N --no-check-certificate https://raw.githubusercontent.com/wikihacker/V2Ray_ws-tls_bash_onekey_En/${github_branch}/v2ray.sh
 
     if [[ -f v2ray.sh ]]; then
         rm -rf $v2ray_systemd_file
@@ -648,7 +647,7 @@ vmess_qr_config_tls_ws() {
     cat >$v2ray_qr_config_file <<-EOF
 {
   "v": "2",
-  "ps": "wulabing_${domain}",
+  "ps": "wikihacker_${domain}",
   "add": "${domain}",
   "port": "${port}",
   "id": "${UUID}",
@@ -666,7 +665,7 @@ vmess_qr_config_h2() {
     cat >$v2ray_qr_config_file <<-EOF
 {
   "v": "2",
-  "ps": "wulabing_${domain}",
+  "ps": "wikihacker_${domain}",
   "add": "${domain}",
   "port": "${port}",
   "id": "${UUID}",
