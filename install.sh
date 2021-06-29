@@ -29,7 +29,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[error]${Font}"
 
 # Edition
-shell_version="1.1.6.2"
+shell_version="1.1.8.3"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -41,7 +41,8 @@ nginx_dir="/etc/nginx"
 web_dir="/home/wwwroot"
 nginx_openssl_src="/usr/local/src"
 v2ray_bin_dir_old="/usr/bin/v2ray"
-v2ray_bin_dir="/usr/local/bin"
+v2ray_bin_dir="/usr/local/bin/v2ray"
+v2ctl_bin_dir="/usr/local/bin/v2ctl"
 v2ray_info_file="$HOME/v2ray_info.inf"
 v2ray_qr_config_file="/usr/local/vmess_qr.json"
 nginx_systemd_file="/etc/systemd/system/nginx.service"
@@ -50,8 +51,8 @@ v2ray_access_log="/var/log/v2ray/access.log"
 v2ray_error_log="/var/log/v2ray/error.log"
 amce_sh_file="/root/.acme.sh/acme.sh"
 ssl_update_file="/usr/bin/ssl_update.sh"
-nginx_version="1.18.0"
-openssl_version="1.1.1g"
+nginx_version="1.20.1"
+openssl_version="1.1.1k"
 jemalloc_version="5.2.1"
 old_config_status="off"
 # v2ray_plugin_version="$(wget -qO- "https://github.com/shadowsocks/v2ray-plugin/tags" | grep -E "/shadowsocks/v2ray-plugin/releases/tag/" | head -1 | sed -r 's/.*tag\/v(.+)\">.*/\1/')"
@@ -222,6 +223,8 @@ dependency_install() {
         systemctl start haveged && systemctl enable haveged
         #       judge "haveged start-up"
     fi
+
+    mkdir -p /usr/local/bin >/dev/null 2>&1
 }
 basic_optimization() {
     # 最大文件打开数
@@ -424,6 +427,8 @@ ssl_install() {
     fi
     judge "Install SSL certificate generation script dependencies"
 
+    curl https://get.acme.sh | sh
+
     read -rp "Please enter the email address to register the domain name:" domain_email
 
     curl https://get.acme.sh | sh -s email=$domain_email
@@ -471,7 +476,7 @@ port_exist_check() {
     fi
 }
 acme() {
-    "$HOME"/.acme.sh/acme.sh --set-default-ca --server zerossl
+    "$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
     if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
         echo -e "${OK} ${GreenBG} The SSL certificate test is issued successfully, and the formal issuance begins ${Font}"
         rm -rf "$HOME/.acme.sh/${domain}_ecc"
@@ -826,17 +831,18 @@ mtproxy_sh() {
 
 uninstall_all() {
     stop_process_systemd
-    [[ -f $nginx_systemd_file ]] && rm -f $nginx_systemd_file
     [[ -f $v2ray_systemd_file ]] && rm -f $v2ray_systemd_file
-    [[ -d $v2ray_bin_dir ]] && rm -rf $v2ray_bin_dir
+    [[ -f $v2ray_bin_dir ]] && rm -f $v2ray_bin_dir
+    [[ -f $v2ctl_bin_dir ]] && rm -f $v2ctl_bin_dir
     [[ -d $v2ray_bin_dir_old ]] && rm -rf $v2ray_bin_dir_old
     if [[ -d $nginx_dir ]]; then
-        echo -e "${OK} ${Green} Uninstall nginx [Y/N]? ${Font}"
+        echo -e "${OK} ${Green} Do you want to uninstall Nginx [Y/N]? ${Font}"
         read -r uninstall_nginx
         case $uninstall_nginx in
         [yY][eE][sS] | [yY])
             rm -rf $nginx_dir
-            echo -e "${OK} ${Green} Nginx uninstalled ${Font}"
+            rm -rf $nginx_systemd_file
+            echo -e "${OK} ${Green} Uninstalled Nginx ${Font}"
             ;;
         *) ;;
 
@@ -844,8 +850,18 @@ uninstall_all() {
     fi
     [[ -d $v2ray_conf_dir ]] && rm -rf $v2ray_conf_dir
     [[ -d $web_dir ]] && rm -rf $web_dir
+    echo -e "${OK} ${Green} Do you want to uninstall acme.sh and certificate [Y/N]? ${Font}"
+    read -r uninstall_acme
+    case $uninstall_acme in
+    [yY][eE][sS] | [yY])
+      /root/.acme.sh/acme.sh --uninstall
+      rm -rf /root/.acme.sh
+      rm -rf /data/*
+      ;;
+    *) ;;
+    esac
     systemctl daemon-reload
-    echo -e "${OK} ${GreenBG} Uninstalled, SSL certificate file reserved ${Font}"
+    echo -e "${OK} ${GreenBG} Uninstalled ${Font}"
 }
 delete_tls_key_and_crt() {
     [[ -f $HOME/.acme.sh/acme.sh ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
@@ -1052,6 +1068,7 @@ menu() {
         ;;
     14)
         uninstall_all
+        source '/etc/os-release'
         ;;
     15)
         acme_cron_update
