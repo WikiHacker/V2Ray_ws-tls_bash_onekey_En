@@ -28,7 +28,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[error]${Font}"
 
 # Edition
-shell_version="1.1.8.3"
+shell_version="1.1.8.4"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -868,7 +868,7 @@ delete_tls_key_and_crt() {
     echo -e "${OK} ${GreenBG} Certificate legacy file cleared ${Font}"
 }
 judge_mode() {
-    if [ -f $v2ray_bin_dir/v2ray ] || [ -f $v2ray_bin_dir_old/v2ray ]; then
+    if [ -f $v2ray_bin_dir ] || [ -f $v2ray_bin_dir_old/v2ray ]; then
         if grep -q "ws" $v2ray_qr_config_file; then
             shell_mode="ws"
         elif grep -q "h2" $v2ray_qr_config_file; then
